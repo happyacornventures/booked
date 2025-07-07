@@ -9,6 +9,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "infoPlist": {
+        "UIBackgroundModes": ["fetch", "remote-notification"],
+        "NSCalendarsUsageDescription": "The app needs to access your calendar."
+      },
       "supportsTablet": true
     },
     "android": {
