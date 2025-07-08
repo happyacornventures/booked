@@ -1,9 +1,10 @@
 import * as Calendar from 'expo-calendar';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Platform, ScrollView, Text, View } from 'react-native';
 
 export default function CalendarList() {
   const [calendars, setCalendars] = useState<Calendar.Calendar[]>([]);
+  const [booked, setBooked] = useState<Calendar.Calendar | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -16,6 +17,32 @@ export default function CalendarList() {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    const createDefaultCalendar = async () => {
+        if (calendars.length === 0) return;
+        let booked = calendars.find(cal => cal.title === 'Booked');
+        if(booked) setBooked(booked);
+        if (!booked) {
+            const defaultCalendarSource = Platform.OS === 'ios'
+                ? (await Calendar.getDefaultCalendarAsync()).source
+                : { isLocalAccount: true, name: 'Booked', type: 'local' };
+
+            const booked = await Calendar.createCalendarAsync({
+                title: 'Booked',
+                color: '#FF5733',
+                entityType: Calendar.EntityTypes.EVENT,
+                source: defaultCalendarSource,
+                name: 'Booked',
+                accessLevel: Calendar.CalendarAccessLevel.OWNER,
+                ownerAccount: 'ghost',
+            });
+        }
+    }
+
+    createDefaultCalendar();
+
+  }, [calendars]);
 
   return (
     <ScrollView>
