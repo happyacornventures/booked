@@ -7,6 +7,7 @@ export default function CalendarList() {
   const [calendars, setCalendars] = useState<Calendar.Calendar[]>([]);
   const [booked, setBooked] = useState<Calendar.Calendar | null>(null);
   const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
+  const [events, setEvents] = useState<Calendar.Event[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -45,6 +46,38 @@ export default function CalendarList() {
     createDefaultCalendar();
 
   }, [calendars]);
+
+  const fetchEvents = async (days: number = 14) => {
+    if (selectedCalendars.length === 0) {
+      setEvents([]);
+      return;
+    }
+
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + days);
+
+    let allEvents: Calendar.Event[] = [];
+
+    for (const calendarId of selectedCalendars) {
+      try {
+        const calendarEvents = await Calendar.getEventsAsync(
+          [calendarId],
+          startDate,
+          endDate
+        );
+        allEvents = [...allEvents, ...calendarEvents];
+      } catch (error) {
+        console.error(`Error fetching events for calendar ${calendarId}:`, error);
+      }
+    }
+
+    setEvents(allEvents);
+  };
+
+  useEffect(() => {
+    fetchEvents(90); // Fetch events for the next 90 days
+  }, [selectedCalendars]);
 
   const toggleCalendarSelection = (calendarId: string) => {
     setSelectedCalendars(prevSelected =>
@@ -90,6 +123,19 @@ export default function CalendarList() {
         const cal = calendars.find(c => c.id === id);
         return cal ? <Text key={id}>{cal.title}</Text> : null;
       })}
+
+      <Text style={{ fontSize: 24, margin: 10 }}>Events:</Text>
+      {events.length > 0 ? (
+        events.map((event, index) => (
+          <View key={index} style={{ margin: 10 }}>
+            <Text>Title: {event.title}</Text>
+            <Text>Start: {event.startDate}</Text>
+            <Text>End: {event.endDate}</Text>
+          </View>
+        ))
+      ) : (
+        <Text>No events found for the selected calendars.</Text>
+      )}
     </ScrollView>
   );
 }
