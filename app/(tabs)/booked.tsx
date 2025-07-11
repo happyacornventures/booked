@@ -131,6 +131,9 @@ export default function CalendarList() {
             <Text>Title: {event.title}</Text>
             <Text>Start: {event.startDate}</Text>
             <Text>End: {event.endDate}</Text>
+            <Text>Availability: {event.availability}</Text>
+            <Text>Status: {event.status}</Text>
+            <Text>All Day? {event.allDay ? "Yes" : "No"}</Text>
           </View>
         ))
       ) : (
