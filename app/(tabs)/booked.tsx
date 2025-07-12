@@ -79,6 +79,42 @@ export default function CalendarList() {
     fetchEvents(90); // Fetch events for the next 90 days
   }, [selectedCalendars]);
 
+  useEffect(() => {
+    // clear booked calendar events
+    const clearBookedEvents = async () => {
+      if (!booked) return;
+      try {
+        const events = await Calendar.getEventsAsync([booked.id], new Date(), new Date(Date.now() + 1000 * 60 * 60 * 24 * 365));
+        for (const event of events) {
+          await Calendar.deleteEventAsync(event.id);
+        }
+      } catch (error) {
+        console.error('Error clearing booked events:', error);
+      }
+    }
+
+    // create a calendar event on booked for each event
+    const createBookedEvents = async () => {
+      if (!booked || events.length === 0) return;
+
+      for (const event of events) {
+        try {
+          await Calendar.createEventAsync(booked.id, {
+            title: event.title,
+            startDate: event.startDate,
+            endDate: event.endDate,
+            allDay: event.allDay,
+            availability: event.availability,
+            status: event.status,
+          });
+        } catch (error) {
+          console.error('Error creating booked event:', error);
+        }
+      }
+    }
+    clearBookedEvents().then(createBookedEvents);
+  }, [events]);
+
   const toggleCalendarSelection = (calendarId: string) => {
     setSelectedCalendars(prevSelected =>
       prevSelected.includes(calendarId)
