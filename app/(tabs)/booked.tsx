@@ -100,7 +100,7 @@ export default function CalendarList() {
       for (const event of events) {
         try {
           await Calendar.createEventAsync(booked.id, {
-            title: event.title,
+            title: "Busy",
             startDate: event.startDate,
             endDate: event.endDate,
             allDay: event.allDay,
