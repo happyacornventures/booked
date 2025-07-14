@@ -144,7 +144,7 @@ export default function CalendarList() {
           </View>
         </TouchableOpacity>
       ))}
-      <Text style={{ fontSize: 24, margin: 10 }}>Booked Calendar:</Text>
+      {/* <Text style={{ fontSize: 24, margin: 10 }}>Booked Calendar:</Text> */}
       {booked ? (
         <View style={{ margin: 10 }}>
           <Text>Name: {booked.title}</Text>
@@ -154,19 +154,19 @@ export default function CalendarList() {
       ) : (
         <Text>No booked calendar found.</Text>
       )}
-      <Text style={{ fontSize: 24, margin: 10 }}>Selected Calendars:</Text>
+      {/* <Text style={{ fontSize: 24, margin: 10 }}>Selected Calendars:</Text>
       {selectedCalendars.map(id => {
         const cal = calendars.find(c => c.id === id);
         return cal ? <Text key={id}>{cal.title}</Text> : null;
-      })}
+      })} */}
 
-      <Text style={{ fontSize: 24, margin: 10 }}>Events:</Text>
+      {/* <Text style={{ fontSize: 24, margin: 10 }}>Events:</Text>
       {events.length > 0 ? (
         events.map((event, index) => (
           <View key={index} style={{ margin: 10 }}>
             <Text>Title: {event.title}</Text>
-            <Text>Start: {event.startDate}</Text>
-            <Text>End: {event.endDate}</Text>
+            <Text>Start: {event.startDate.toString()}</Text>
+            <Text>End: {event.endDate.toString()}</Text>
             <Text>Availability: {event.availability}</Text>
             <Text>Status: {event.status}</Text>
             <Text>All Day? {event.allDay ? "Yes" : "No"}</Text>
@@ -174,7 +174,7 @@ export default function CalendarList() {
         ))
       ) : (
         <Text>No events found for the selected calendars.</Text>
-      )}
+      )} */}
     </ScrollView>
   );
 }
