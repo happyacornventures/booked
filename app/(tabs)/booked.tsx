@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Calendar from 'expo-calendar';
 import React, { useEffect, useState } from 'react';
 import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -8,6 +9,36 @@ export default function CalendarList() {
   const [booked, setBooked] = useState<Calendar.Calendar | null>(null);
   const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
   const [events, setEvents] = useState<Calendar.Event[]>([]);
+
+  useEffect(() => {
+    // Load selected calendars from AsyncStorage when component mounts
+    const loadSelectedCalendars = async () => {
+      try {
+        const savedCalendars = await AsyncStorage.getItem('calendars');
+        if (savedCalendars !== null) {
+          setSelectedCalendars(JSON.parse(savedCalendars));
+        }
+      } catch (error) {
+        console.error('Error loading selected calendars:', error);
+      }
+    };
+
+    loadSelectedCalendars();
+    // ... rest of your existing useEffect code for fetching calendars
+  }, []);
+
+  useEffect(() => {
+    // Save selected calendars to AsyncStorage whenever they change
+    const saveSelectedCalendars = async () => {
+      try {
+        await AsyncStorage.setItem('calendars', JSON.stringify(selectedCalendars));
+      } catch (error) {
+        console.error('Error saving selected calendars:', error);
+      }
+    };
+
+    saveSelectedCalendars();
+  }, [selectedCalendars]);
 
   useEffect(() => {
     (async () => {
