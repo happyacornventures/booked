@@ -78,10 +78,9 @@ export default function CalendarList() {
 
   }, [calendars]);
 
-  const fetchEvents = async (days: number = 14) => {
-    if (selectedCalendars.length === 0) {
-      setEvents([]);
-      return;
+  const fetchEvents = async (calendars: string[], days: number = 14) => {
+    if (calendars.length === 0) {
+      return [];
     }
 
     const startDate = new Date();
@@ -90,7 +89,7 @@ export default function CalendarList() {
 
     let allEvents: Calendar.Event[] = [];
 
-    for (const calendarId of selectedCalendars) {
+    for (const calendarId of calendars) {
       try {
         const calendarEvents = await Calendar.getEventsAsync(
           [calendarId],
@@ -103,11 +102,15 @@ export default function CalendarList() {
       }
     }
 
-    setEvents(allEvents);
+    return allEvents;
+  };
+
+  const fetchSelectedEvents = async () => {
+    setEvents(await fetchEvents(selectedCalendars, 90));
   };
 
   useEffect(() => {
-    fetchEvents(90); // Fetch events for the next 90 days
+    fetchSelectedEvents();
   }, [selectedCalendars]);
 
   useEffect(() => {
