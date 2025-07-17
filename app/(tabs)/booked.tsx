@@ -10,6 +10,7 @@ export default function CalendarList() {
   const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
   const [events, setEvents] = useState<Calendar.Event[]>([]);
   const [expandedSources, setExpandedSources] = useState<Record<string, boolean>>({});
+  const [clearingBookedEvents, setClearingBookedEvents] = useState(false);
 
   useEffect(() => {
     // Load selected calendars from AsyncStorage when component mounts
@@ -128,7 +129,7 @@ export default function CalendarList() {
     }
 
         // create a calendar event on booked for each event
-    const createBookedEvents = async () => {
+    const createBookedEvents = async (events: Calendar.Event[]) => {
       if (!booked || events.length === 0) return;
 
       for (const event of events) {
@@ -148,7 +149,8 @@ export default function CalendarList() {
     }
 
   useEffect(() => {
-    clearBookedEvents().then(createBookedEvents);
+    setClearingBookedEvents(true);
+    clearBookedEvents().then(() => createBookedEvents(events)).then(() => setClearingBookedEvents(false));
   }, [events]);
 
   const toggleCalendarSelection = (calendarId: string) => {
@@ -214,9 +216,15 @@ export default function CalendarList() {
           ))}
         </View>
       ))}
-      <TouchableOpacity style={{ backgroundColor: 'cornflowerblue', padding: 10, margin: 10, borderRadius: 10 }} onPress={() => clearBookedEvents().then(createBookedEvents)}>
+      <TouchableOpacity style={{ backgroundColor: 'cornflowerblue', padding: 10, margin: 10, borderRadius: 10 }} onPress={() => {
+        setClearingBookedEvents(true);
+        clearBookedEvents().then(createBookedEvents).then(() => setClearingBookedEvents(false));
+      }}>
         <Text style={{ color: 'white', textAlign: 'center' }}>Sync Calendar</Text>
       </TouchableOpacity>
+      {clearingBookedEvents && (
+        <Text style={{ color: 'red', textAlign: 'center', margin: 10 }}>Clearing booked events...</Text>
+      )}
     </ScrollView>
   );
 }
