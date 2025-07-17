@@ -9,6 +9,7 @@ export default function CalendarList() {
   const [booked, setBooked] = useState<Calendar.Calendar | null>(null);
   const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
   const [events, setEvents] = useState<Calendar.Event[]>([]);
+  const [expandedSources, setExpandedSources] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     // Load selected calendars from AsyncStorage when component mounts
@@ -113,7 +114,6 @@ export default function CalendarList() {
     fetchSelectedEvents();
   }, [selectedCalendars]);
 
-  useEffect(() => {
     // clear booked calendar events
     const clearBookedEvents = async () => {
       if (!booked) return;
@@ -127,7 +127,7 @@ export default function CalendarList() {
       }
     }
 
-    // create a calendar event on booked for each event
+        // create a calendar event on booked for each event
     const createBookedEvents = async () => {
       if (!booked || events.length === 0) return;
 
@@ -146,6 +146,8 @@ export default function CalendarList() {
         }
       }
     }
+
+  useEffect(() => {
     clearBookedEvents().then(createBookedEvents);
   }, [events]);
 
@@ -157,58 +159,64 @@ export default function CalendarList() {
     );
   };
 
+  const toggleSourceExpansion = (sourceName: string) => {
+    setExpandedSources(prevExpanded => ({
+      ...prevExpanded,
+      [sourceName]: !prevExpanded[sourceName],
+    }));
+  };
+
+  const groupCalendarsBySource = (calendars: Calendar.Calendar[]) => {
+    return calendars.reduce((groups, calendar) => {
+      const sourceName = calendar.source.name;
+      if (!groups[sourceName]) {
+        groups[sourceName] = [];
+      }
+      groups[sourceName].push(calendar);
+      return groups;
+    }, {} as Record<string, Calendar.Calendar[]>);
+  };
+
+  const groupedCalendars = groupCalendarsBySource(calendars.filter(({title}) => title !== "Booked"));
+
   return (
     <ScrollView>
-      <Text style={{ fontSize: 24, margin: 10 }}>Available Calendars:</Text>
-      {calendars.map((cal) => (
-        <TouchableOpacity
-          key={cal.id}
-          style={{ flexDirection: 'row', alignItems: 'center', margin: 10 }}
-          onPress={() => toggleCalendarSelection(cal.id)}
-        >
-          <Ionicons
-            name={selectedCalendars.includes(cal.id) ? "checkbox-outline" : "square-outline"}
-            size={24}
-            color="black"
-          />
-          <View style={{ marginLeft: 10 }}>
-            <Text>Name: {cal.title}</Text>
-            {/* <Text>Source: {cal.source.name}</Text>
-            <Text>Type: {cal.source.type}</Text> */}
-          </View>
-        </TouchableOpacity>
-      ))}
-      {/* <Text style={{ fontSize: 24, margin: 10 }}>Booked Calendar:</Text> */}
-      {booked ? (
-        <View style={{ margin: 10 }}>
-          <Text>Name: {booked.title}</Text>
-          {/* <Text>Source: {booked.source.name}</Text>
-          <Text>Type: {booked.source.type}</Text> */}
+      <Text style={{ fontSize: 24, margin: 10, marginTop: 70 }}>Available Calendars:</Text>
+      {Object.entries(groupedCalendars).map(([sourceName, cals]) => (
+        <View key={sourceName}>
+          <TouchableOpacity
+            onPress={() => toggleSourceExpansion(sourceName)}
+            style={{ flexDirection: 'row', alignItems: 'center', margin: 10 }}
+          >
+            <Ionicons
+              name={expandedSources[sourceName] ? "chevron-down" : "chevron-forward"}
+              size={24}
+              color="white"
+            />
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10, color: "white" }}>{sourceName}</Text>
+          </TouchableOpacity>
+          {expandedSources[sourceName] && cals.map((cal) => (
+            <TouchableOpacity
+              key={cal.id}
+              style={{ flexDirection: 'row', alignItems: 'center', margin: 10, marginLeft: 20 }}
+              onPress={() => toggleCalendarSelection(cal.id)}
+            >
+              <Ionicons
+                name={selectedCalendars.includes(cal.id) ? "checkbox-outline" : "square-outline"}
+                size={24}
+                color="white"
+              />
+              <View style={{ marginLeft: 10 }}>
+                <Text style={{ color: "white" }}>Name: {cal.title}</Text>
+                <Text style={{ color: "white" }}>Type: {cal.source.type}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
-      ) : (
-        <Text>No booked calendar found.</Text>
-      )}
-      {/* <Text style={{ fontSize: 24, margin: 10 }}>Selected Calendars:</Text>
-      {selectedCalendars.map(id => {
-        const cal = calendars.find(c => c.id === id);
-        return cal ? <Text key={id}>{cal.title}</Text> : null;
-      })} */}
-
-      {/* <Text style={{ fontSize: 24, margin: 10 }}>Events:</Text>
-      {events.length > 0 ? (
-        events.map((event, index) => (
-          <View key={index} style={{ margin: 10 }}>
-            <Text>Title: {event.title}</Text>
-            <Text>Start: {event.startDate.toString()}</Text>
-            <Text>End: {event.endDate.toString()}</Text>
-            <Text>Availability: {event.availability}</Text>
-            <Text>Status: {event.status}</Text>
-            <Text>All Day? {event.allDay ? "Yes" : "No"}</Text>
-          </View>
-        ))
-      ) : (
-        <Text>No events found for the selected calendars.</Text>
-      )} */}
+      ))}
+      <TouchableOpacity style={{ backgroundColor: 'cornflowerblue', padding: 10, margin: 10, borderRadius: 10 }} onPress={() => clearBookedEvents().then(createBookedEvents)}>
+        <Text style={{ color: 'white', textAlign: 'center' }}>Sync Calendar</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
