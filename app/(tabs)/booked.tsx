@@ -104,11 +104,29 @@ export default function CalendarList() {
       }
     }
 
+    console.log(`${allEvents.length} events fetched for the next ${days} days.`);
     return allEvents;
   };
 
+  const getPlannedDayCount = (): number => {
+    // get days to end of month
+    const today = new Date();
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    let daysToEndOfMonth = Math.ceil((endOfMonth.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    // if days to end of month is < 21, get days of next month
+    if (daysToEndOfMonth < 21) {
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+      const endOfNextMonth = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0);
+      // console.error("returning days to end of next month:", daysToEndOfMonth);
+      daysToEndOfMonth = Math.ceil((endOfNextMonth.getTime() - nextMonth.getTime()) / (1000 * 60 * 60 * 24) + daysToEndOfMonth);
+    }
+    // console.error("returning days to end of month:", daysToEndOfMonth);
+    return daysToEndOfMonth;
+  }
+
   const fetchSelectedEvents = async () => {
-    setEvents(await fetchEvents(selectedCalendars, 90));
+    setEvents(await fetchEvents(selectedCalendars, getPlannedDayCount()));
   };
 
   useEffect(() => {
