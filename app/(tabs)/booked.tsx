@@ -137,7 +137,14 @@ export default function CalendarList() {
     const clearBookedEvents = async () => {
       if (!booked) return;
       try {
-        const events = await Calendar.getEventsAsync([booked.id], new Date(), new Date(Date.now() + 1000 * 60 * 60 * 24 * 365));
+        // get all events through DaysToEndOfMonth
+        const daysToEndOfMonth = getPlannedDayCount();
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + daysToEndOfMonth);
+        const events = await Calendar.getEventsAsync([booked.id], startDate, endDate);
+
+        // const events = await Calendar.getEventsAsync([booked.id], new Date(), new Date(Date.now() + 1000 * 60 * 60 * 24 * 365));
         for (const event of events) {
           await Calendar.deleteEventAsync(event.id);
         }
