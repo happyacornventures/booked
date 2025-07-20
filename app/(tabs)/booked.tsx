@@ -7,6 +7,7 @@ import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native
 export default function CalendarList() {
   const [calendars, setCalendars] = useState<Calendar.Calendar[]>([]);
   const [booked, setBooked] = useState<Calendar.Calendar | null>(null);
+  const [bookedEvents, setBookedEvents] = useState<Record<string, string>[]>(startingState);
   const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
   const [events, setEvents] = useState<Calendar.Event[]>([]);
   const [expandedSources, setExpandedSources] = useState<Record<string, boolean>>({});
