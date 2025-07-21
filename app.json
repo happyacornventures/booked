@@ -10,17 +10,27 @@
     "newArchEnabled": true,
     "ios": {
       "infoPlist": {
-        "UIBackgroundModes": ["fetch", "remote-notification"],
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification",
+          "fetch",
+          "remote-notification"
+        ],
         "NSCalendarsUsageDescription": "The app needs to access your calendar."
       },
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.hav-booked"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
+      ]
     },
     "web": {
       "bundler": "metro",
