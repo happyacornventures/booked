@@ -4,12 +4,10 @@ import * as Calendar from 'expo-calendar';
 import React, { useEffect, useState } from 'react';
 import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-const startingState: Record<string, string>[] = [];
-
 export default function Index() {
   const [calendars, setCalendars] = useState<Calendar.Calendar[]>([]);
   const [booked, setBooked] = useState<Calendar.Calendar | null>(null);
-  const [bookedEvents, setBookedEvents] = useState<Record<string, string>[]>(startingState);
+  const [bookedEvents, setBookedEvents] = useState<Record<string, string>[]>([]);
   const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
   const [events, setEvents] = useState<Calendar.Event[]>([]);
   const [expandedSources, setExpandedSources] = useState<Record<string, boolean>>({});
