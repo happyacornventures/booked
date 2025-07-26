@@ -63,72 +63,59 @@ export default function Index() {
     setEvents(await fetchEvents(selectedCalendars, getPlannedDayCount()));
   };
 
-  useEffect(() => {
-    console.log('bookedEvents:', bookedEvents.length);
-  }, [bookedEvents])
+  // clear booked calendar events
+  const clearBookedEvents = async (events: Calendar.Event[], bookedEvents: Record<string, string>[]) => {
+    if (!booked) return;
+    try {
+      // get all events through DaysToEndOfMonth
+      const daysToEndOfMonth = getPlannedDayCount();
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + daysToEndOfMonth);
+      const events = await Calendar.getEventsAsync([booked.id], startDate, endDate);
+      console.error('clearing booked events:', events.length);
+      // const events = await Calendar.getEventsAsync([booked.id], new Date(), new Date(Date.now() + 1000 * 60 * 60 * 24 * 365));
+      for (const event of events) {
+        await Calendar.deleteEventAsync(event.id);
+        console.error('deleted booked event:', event.startDate);
+        setBookedEvents(prev => prev.filter(be => be.bookedEvent !== event.id));
+      }
+      console.error('cleared booked events:', bookedEvents.length);
+    } catch (error) {
+      console.error('Error clearing booked events:', error);
+    }
+  };
 
-  useEffect(() => {
-    fetchSelectedEvents();
-  }, [selectedCalendars]);
+  // create a calendar event on booked for each event
+  const createBookedEvents = async (events: Calendar.Event[], bookedEvents: Record<string, string>[]) => {
+    if (!booked || events.length === 0) return;
+    const newBookedEvents = [];
+    // console.error('creating booked events:', events.length);
+    for (const originalEvent of events) {
+      // console.error('creating booked event:', originalEvent.startDate);
+      // create a new event if originalEvent is not in bookedEvents
+      if (bookedEvents.some(be => be.originalEvent === originalEvent.id)) {
+        console.error('event already booked:', originalEvent.startDate);
+        continue;
+      }
 
-    // clear booked calendar events
-    const clearBookedEvents = async (events: Calendar.Event[], bookedEvents: Record<string, string>[]) => {
-      if (!booked) return;
       try {
-        // get all events through DaysToEndOfMonth
-        const daysToEndOfMonth = getPlannedDayCount();
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + daysToEndOfMonth);
-        const events = await Calendar.getEventsAsync([booked.id], startDate, endDate);
-        console.error('clearing booked events:', events.length);
-        // const events = await Calendar.getEventsAsync([booked.id], new Date(), new Date(Date.now() + 1000 * 60 * 60 * 24 * 365));
-        for (const event of events) {
-          await Calendar.deleteEventAsync(event.id);
-          console.error('deleted booked event:', event.startDate);
-          setBookedEvents(prev => prev.filter(be => be.bookedEvent !== event.id));
-        }
-        console.error('cleared booked events:', bookedEvents.length);
+        const bookedEvent = await Calendar.createEventAsync(booked.id, {
+          title: "Busy",
+          startDate: originalEvent.startDate,
+          endDate: originalEvent.endDate,
+          allDay: originalEvent.allDay,
+          availability: originalEvent.availability,
+          status: originalEvent.status,
+        });
+        newBookedEvents.push({bookedEvent, originalEvent: originalEvent.id});
+        console.error('creating booked event:', originalEvent.startDate);
       } catch (error) {
-        console.error('Error clearing booked events:', error);
+        console.error('Error creating booked event:', error);
       }
     }
-
-    // create a calendar event on booked for each event
-    const createBookedEvents = async (events: Calendar.Event[], bookedEvents: Record<string, string>[]) => {
-      if (!booked || events.length === 0) return;
-      const newBookedEvents = [];
-      // console.error('creating booked events:', events.length);
-      for (const originalEvent of events) {
-        // console.error('creating booked event:', originalEvent.startDate);
-        // create a new event if originalEvent is not in bookedEvents
-        if (bookedEvents.some(be => be.originalEvent === originalEvent.id)) {
-          console.error('event already booked:', originalEvent.startDate);
-          continue;
-        }
-
-        try {
-          const bookedEvent = await Calendar.createEventAsync(booked.id, {
-            title: "Busy",
-            startDate: originalEvent.startDate,
-            endDate: originalEvent.endDate,
-            allDay: originalEvent.allDay,
-            availability: originalEvent.availability,
-            status: originalEvent.status,
-          });
-          newBookedEvents.push({bookedEvent, originalEvent: originalEvent.id});
-          console.error('creating booked event:', originalEvent.startDate);
-        } catch (error) {
-          console.error('Error creating booked event:', error);
-        }
-      }
-      setBookedEvents([...bookedEvents, ...newBookedEvents]);
-    }
-
-  useEffect(() => {
-    setClearingBookedEvents(true);
-    clearBookedEvents(events, bookedEvents).then(() => createBookedEvents(events, bookedEvents)).then(() => setClearingBookedEvents(false));
-  }, [events]);
+    setBookedEvents([...bookedEvents, ...newBookedEvents]);
+  }
 
   const toggleCalendarSelection = (calendarId: string) => {
     setSelectedCalendars(prevSelected =>
