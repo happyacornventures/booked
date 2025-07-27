@@ -228,7 +228,7 @@ export default function Index() {
   // sync booked events when events change
   useEffect(() => {
     setClearingBookedEvents(true);
-    clearBookedEvents(events, bookedEvents).then(() => createBookedEvents(events, bookedEvents)).then(() => setClearingBookedEvents(false));
+    clearBookedEvents(booked as Calendar.Calendar, events, bookedEvents).then(() => createBookedEvents(events, bookedEvents)).then(() => setClearingBookedEvents(false));
   }, [events]);
 
   return (
@@ -266,7 +266,7 @@ export default function Index() {
       ))}
       <TouchableOpacity style={{ backgroundColor: 'cornflowerblue', padding: 10, margin: 10, borderRadius: 10 }} onPress={() => {
         setClearingBookedEvents(true);
-        clearBookedEvents(events, bookedEvents).then(() => createBookedEvents(events, bookedEvents)).then(() => setClearingBookedEvents(false));
+        clearBookedEvents(booked as Calendar.Calendar, events, bookedEvents).then(() => createBookedEvents(events, bookedEvents)).then(() => setClearingBookedEvents(false));
       }}>
         <Text style={{ textAlign: 'center' }}>Sync Calendar</Text>
       </TouchableOpacity>
