@@ -4,6 +4,85 @@ import * as Calendar from 'expo-calendar';
 import React, { useEffect, useState } from 'react';
 import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
+const getPlannedDayCount = (): number => {
+  // get days to end of month
+  const today = new Date();
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  let daysToEndOfMonth = Math.ceil((endOfMonth.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  // if days to end of month is < 21, get days of next month
+  if (daysToEndOfMonth < 7) {
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    const endOfNextMonth = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0);
+    // console.error("returning days to end of next month:", daysToEndOfMonth);
+    daysToEndOfMonth = Math.ceil((endOfNextMonth.getTime() - nextMonth.getTime()) / (1000 * 60 * 60 * 24) + daysToEndOfMonth);
+  }
+  // console.error("returning days to end of month:", daysToEndOfMonth);
+  // return daysToEndOfMonth;
+  return 2;
+}
+
+const fetchEvents = async (calendars: string[], days: number = 14) => {
+  if (calendars.length === 0) {
+    return [];
+  }
+
+  const startDate = new Date();
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + days);
+
+  let allEvents: Calendar.Event[] = [];
+
+  for (const calendarId of calendars) {
+    try {
+      const calendarEvents = await Calendar.getEventsAsync(
+        [calendarId],
+        startDate,
+        endDate
+      );
+      allEvents = [...allEvents, ...calendarEvents];
+    } catch (error) {
+      console.error(`Error fetching events for calendar ${calendarId}:`, error);
+    }
+  }
+
+  console.log(`${allEvents.length} events fetched for the next ${days} days.`);
+  return allEvents;
+};
+
+// clear booked calendar events
+const clearBookedEvents = async (targetCalendar: Calendar.Calendar, events: Calendar.Event[], bookedEvents: Record<string, string>[]) => {
+  try {
+    // get all events through DaysToEndOfMonth
+    const daysToEndOfMonth = getPlannedDayCount();
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + daysToEndOfMonth);
+    const events = await Calendar.getEventsAsync([targetCalendar.id], startDate, endDate);
+    console.error('clearing booked events:', events.length);
+    // const events = await Calendar.getEventsAsync([targetCalendar.id], new Date(), new Date(Date.now() + 1000 * 60 * 60 * 24 * 365));
+    for (const event of events) {
+      await Calendar.deleteEventAsync(event.id);
+      console.error('deleted booked event:', event.startDate);
+      // setBookedEvents(prev => prev.filter(be => be.bookedEvent !== event.id));
+    }
+    console.error('cleared booked events:', bookedEvents.length);
+  } catch (error) {
+    console.error('Error clearing booked events:', error);
+  }
+};
+
+const groupCalendarsBySource = (calendars: Calendar.Calendar[]) => {
+  return calendars.reduce((groups, calendar) => {
+    const sourceName = calendar.source.name;
+    if (!groups[sourceName]) {
+      groups[sourceName] = [];
+    }
+    groups[sourceName].push(calendar);
+    return groups;
+  }, {} as Record<string, Calendar.Calendar[]>);
+};
+
 export default function Index() {
   const [calendars, setCalendars] = useState<Calendar.Calendar[]>([]);
   const [booked, setBooked] = useState<Calendar.Calendar | null>(null);
@@ -13,77 +92,10 @@ export default function Index() {
   const [expandedSources, setExpandedSources] = useState<Record<string, boolean>>({});
   const [clearingBookedEvents, setClearingBookedEvents] = useState(false);
 
-  const fetchEvents = async (calendars: string[], days: number = 14) => {
-    if (calendars.length === 0) {
-      return [];
-    }
-
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + days);
-
-    let allEvents: Calendar.Event[] = [];
-
-    for (const calendarId of calendars) {
-      try {
-        const calendarEvents = await Calendar.getEventsAsync(
-          [calendarId],
-          startDate,
-          endDate
-        );
-        allEvents = [...allEvents, ...calendarEvents];
-      } catch (error) {
-        console.error(`Error fetching events for calendar ${calendarId}:`, error);
-      }
-    }
-
-    console.log(`${allEvents.length} events fetched for the next ${days} days.`);
-    return allEvents;
-  };
-
-  const getPlannedDayCount = (): number => {
-    // get days to end of month
-    const today = new Date();
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    let daysToEndOfMonth = Math.ceil((endOfMonth.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-    // if days to end of month is < 21, get days of next month
-    if (daysToEndOfMonth < 7) {
-      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-      const endOfNextMonth = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0);
-      // console.error("returning days to end of next month:", daysToEndOfMonth);
-      daysToEndOfMonth = Math.ceil((endOfNextMonth.getTime() - nextMonth.getTime()) / (1000 * 60 * 60 * 24) + daysToEndOfMonth);
-    }
-    // console.error("returning days to end of month:", daysToEndOfMonth);
-    // return daysToEndOfMonth;
-    return 2;
-  }
+  const groupedCalendars = groupCalendarsBySource(calendars.filter(({title}) => title !== "Booked"));
 
   const fetchSelectedEvents = async () => {
     setEvents(await fetchEvents(selectedCalendars, getPlannedDayCount()));
-  };
-
-  // clear booked calendar events
-  const clearBookedEvents = async (events: Calendar.Event[], bookedEvents: Record<string, string>[]) => {
-    if (!booked) return;
-    try {
-      // get all events through DaysToEndOfMonth
-      const daysToEndOfMonth = getPlannedDayCount();
-      const startDate = new Date();
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + daysToEndOfMonth);
-      const events = await Calendar.getEventsAsync([booked.id], startDate, endDate);
-      console.error('clearing booked events:', events.length);
-      // const events = await Calendar.getEventsAsync([booked.id], new Date(), new Date(Date.now() + 1000 * 60 * 60 * 24 * 365));
-      for (const event of events) {
-        await Calendar.deleteEventAsync(event.id);
-        console.error('deleted booked event:', event.startDate);
-        setBookedEvents(prev => prev.filter(be => be.bookedEvent !== event.id));
-      }
-      console.error('cleared booked events:', bookedEvents.length);
-    } catch (error) {
-      console.error('Error clearing booked events:', error);
-    }
   };
 
   // create a calendar event on booked for each event
@@ -131,19 +143,6 @@ export default function Index() {
       [sourceName]: !prevExpanded[sourceName],
     }));
   };
-
-  const groupCalendarsBySource = (calendars: Calendar.Calendar[]) => {
-    return calendars.reduce((groups, calendar) => {
-      const sourceName = calendar.source.name;
-      if (!groups[sourceName]) {
-        groups[sourceName] = [];
-      }
-      groups[sourceName].push(calendar);
-      return groups;
-    }, {} as Record<string, Calendar.Calendar[]>);
-  };
-
-  const groupedCalendars = groupCalendarsBySource(calendars.filter(({title}) => title !== "Booked"));
 
   // get permission to read calendar and get calendars
   useEffect(() => {
