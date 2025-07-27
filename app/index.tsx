@@ -243,9 +243,8 @@ export default function Index() {
             <Ionicons
               name={expandedSources[sourceName] ? "chevron-down" : "chevron-forward"}
               size={24}
-              color="white"
             />
-            <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10, color: "white" }}>{sourceName}</Text>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10 }}>{sourceName}</Text>
           </TouchableOpacity>
           {expandedSources[sourceName] && cals.map((cal) => (
             <TouchableOpacity
@@ -256,11 +255,10 @@ export default function Index() {
               <Ionicons
                 name={selectedCalendars.includes(cal.id) ? "checkbox-outline" : "square-outline"}
                 size={24}
-                color="white"
               />
               <View style={{ marginLeft: 10 }}>
-                <Text style={{ color: "white" }}>Name: {cal.title}</Text>
-                <Text style={{ color: "white" }}>Type: {cal.source.type}</Text>
+                <Text>Name: {cal.title}</Text>
+                <Text>Type: {cal.source.type}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -270,7 +268,7 @@ export default function Index() {
         setClearingBookedEvents(true);
         clearBookedEvents(events, bookedEvents).then(() => createBookedEvents(events, bookedEvents)).then(() => setClearingBookedEvents(false));
       }}>
-        <Text style={{ color: 'white', textAlign: 'center' }}>Sync Calendar</Text>
+        <Text style={{ textAlign: 'center' }}>Sync Calendar</Text>
       </TouchableOpacity>
       {clearingBookedEvents && (
         <Text style={{ color: 'red', textAlign: 'center', margin: 10 }}>Clearing booked events...</Text>
