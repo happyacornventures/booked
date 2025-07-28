@@ -159,6 +159,11 @@ export default function Index() {
     getCalendarPermissions().then(setCalendarPermissions);
   }, []);
 
+  useEffect(() => {
+    if (!calendarPermissions) return;
+      Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT).then(setCalendars);
+  }, [calendarPermissions]);
+
   // load selected calendars from AsyncStorage when component mounts
   useEffect(() => {
     // Load selected calendars from AsyncStorage when component mounts
@@ -236,7 +241,7 @@ export default function Index() {
   if (!calendarPermissions) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>No calendar permissions granted</Text>
+        <Text>Booked needs access to your calendar to work.</Text>
       </View>
     );
   }
