@@ -154,16 +154,6 @@ export default function Index() {
     }));
   };
 
-  // get permission to read calendar and get calendars
-  useEffect(() => {
-    getCalendarPermissions().then(setCalendarPermissions);
-  }, []);
-
-  useEffect(() => {
-    if (!calendarPermissions) return;
-      Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT).then(setCalendars);
-  }, [calendarPermissions]);
-
   // load selected calendars from AsyncStorage when component mounts
   useEffect(() => {
     // Load selected calendars from AsyncStorage when component mounts
@@ -182,18 +172,15 @@ export default function Index() {
     // ... rest of your existing useEffect code for fetching calendars
   }, []);
 
-  // Save selected calendars to AsyncStorage whenever they change
+  // get permission to read calendar and get calendars
   useEffect(() => {
-    const saveSelectedCalendars = async () => {
-      try {
-        await AsyncStorage.setItem('calendars', JSON.stringify(selectedCalendars));
-      } catch (error) {
-        console.error('Error saving selected calendars:', error);
-      }
-    };
+    getCalendarPermissions().then(setCalendarPermissions);
+  }, []);
 
-    saveSelectedCalendars();
-  }, [selectedCalendars]);
+  useEffect(() => {
+    if (!calendarPermissions) return;
+      Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT).then(setCalendars);
+  }, [calendarPermissions]);
 
   // create default calendar if it doesn't exist
   useEffect(() => {
@@ -222,21 +209,34 @@ export default function Index() {
 
   }, [calendars]);
 
-  // log booked events to console
+  // Save selected calendars to AsyncStorage whenever they change
   useEffect(() => {
-    console.log('bookedEvents:', bookedEvents.length);
-  }, [bookedEvents])
+    const saveSelectedCalendars = async () => {
+      try {
+        await AsyncStorage.setItem('calendars', JSON.stringify(selectedCalendars));
+      } catch (error) {
+        console.error('Error saving selected calendars:', error);
+      }
+    };
+
+    saveSelectedCalendars();
+  }, [selectedCalendars]);
 
   // update fetched events when calendar selection changes
   useEffect(() => {
     fetchSelectedEvents();
   }, [selectedCalendars]);
 
-  // sync booked events when events change
+  // log booked events to console
   useEffect(() => {
-    setClearingBookedEvents(true);
-    clearBookedEvents(booked as Calendar.Calendar, events, bookedEvents).then(() => createBookedEvents(events, bookedEvents)).then(() => setClearingBookedEvents(false));
-  }, [events]);
+    console.log('bookedEvents:', bookedEvents.length);
+  }, [bookedEvents])
+
+  // // sync booked events when events change
+  // useEffect(() => {
+  //   setClearingBookedEvents(true);
+  //   clearBookedEvents(booked as Calendar.Calendar, events, bookedEvents).then(() => createBookedEvents(events, bookedEvents)).then(() => setClearingBookedEvents(false));
+  // }, [events]);
 
   if (!calendarPermissions) {
     return (
