@@ -4,6 +4,15 @@ import * as Calendar from 'expo-calendar';
 import React, { useEffect, useState } from 'react';
 import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
+const getCalendarPermissions = async () => {
+  const { status } = await Calendar.requestCalendarPermissionsAsync();
+  if (status !== 'granted') {
+    console.warn('Calendar permission not granted');
+    return false;
+  }
+  return true;
+};
+
 const getPlannedDayCount = (): number => {
   // get days to end of month
   const today = new Date();
@@ -84,6 +93,7 @@ const groupCalendarsBySource = (calendars: Calendar.Calendar[]) => {
 };
 
 export default function Index() {
+  const [calendarPermissions, setCalendarPermissions] = useState(false);
   const [calendars, setCalendars] = useState<Calendar.Calendar[]>([]);
   const [booked, setBooked] = useState<Calendar.Calendar | null>(null);
   const [bookedEvents, setBookedEvents] = useState<Record<string, string>[]>([]);
@@ -146,15 +156,7 @@ export default function Index() {
 
   // get permission to read calendar and get calendars
   useEffect(() => {
-    (async () => {
-      const { status } = await Calendar.requestCalendarPermissionsAsync();
-      if (status === 'granted') {
-        const cals = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
-        setCalendars(cals);
-      } else {
-        console.warn('Calendar permission not granted');
-      }
-    })();
+    getCalendarPermissions().then(setCalendarPermissions);
   }, []);
 
   // load selected calendars from AsyncStorage when component mounts
@@ -230,6 +232,14 @@ export default function Index() {
     setClearingBookedEvents(true);
     clearBookedEvents(booked as Calendar.Calendar, events, bookedEvents).then(() => createBookedEvents(events, bookedEvents)).then(() => setClearingBookedEvents(false));
   }, [events]);
+
+  if (!calendarPermissions) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>No calendar permissions granted</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView>
