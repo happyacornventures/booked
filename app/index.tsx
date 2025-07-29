@@ -184,36 +184,19 @@ export default function Index() {
     getCalendarPermissions().then(setCalendarPermissions);
   }, []);
 
+  // get all calendars when permissions are granted
   useEffect(() => {
     if (!calendarPermissions) return;
-      Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT).then(setCalendars);
+    getCalendars().then(setCalendars);
   }, [calendarPermissions]);
 
   // create default calendar if it doesn't exist
   useEffect(() => {
-    const createDefaultCalendar = async () => {
-        if (calendars.length === 0) return;
-        let booked = calendars.find(cal => cal.title === 'Booked');
-        if(booked) setBooked(booked);
-        if (!booked) {
-            const defaultCalendarSource = Platform.OS === 'ios'
-                ? (await Calendar.getDefaultCalendarAsync()).source
-                : { isLocalAccount: true, name: 'Booked', type: 'local' };
-
-            const booked = await Calendar.createCalendarAsync({
-                title: 'Booked',
-                color: '#FF5733',
-                entityType: Calendar.EntityTypes.EVENT,
-                source: defaultCalendarSource,
-                name: 'Booked',
-                accessLevel: Calendar.CalendarAccessLevel.OWNER,
-                ownerAccount: 'ghost',
-            });
-        }
-    }
-
-    createDefaultCalendar();
-
+    if (calendars.length > 0) return;
+    let booked = calendars.find(cal => cal.title === 'Booked');
+    if (booked) setBooked(booked);
+    else createCalendar({title: 'Booked', name: 'Booked', color: '#FF5733'}).then(getCalendars).then(setCalendars);
+    // calendars will be set, retriggering this effect
   }, [calendars]);
 
   // Save selected calendars to AsyncStorage whenever they change
