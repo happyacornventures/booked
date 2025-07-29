@@ -4,13 +4,20 @@ import * as Calendar from 'expo-calendar';
 import React, { useEffect, useState } from 'react';
 import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-const getCalendarPermissions = async () => {
-  const { status } = await Calendar.requestCalendarPermissionsAsync();
-  if (status !== 'granted') {
-    console.warn('Calendar permission not granted');
-    return false;
-  }
-  return true;
+const getCalendarPermissions = async () => (await Calendar.requestCalendarPermissionsAsync()).status === 'granted';
+const getCalendars = async () => await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+
+const createCalendar = async (cal: Partial<Calendar.Calendar>) => {
+  const defaultCalendarSource = Platform.OS === 'ios'
+    ? (await Calendar.getDefaultCalendarAsync()).source
+    : { isLocalAccount: true, name: 'Booked', type: 'local' };
+
+  return await Calendar.createCalendarAsync({
+    entityType: Calendar.EntityTypes.EVENT,
+    source: defaultCalendarSource,
+    accessLevel: Calendar.CalendarAccessLevel.OWNER,
+    ...cal
+  });
 };
 
 const getPlannedDayCount = (): number => {
