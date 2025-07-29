@@ -20,28 +20,8 @@ const createCalendar = async (cal: Partial<Calendar.Calendar>) => {
   });
 };
 
-const getPlannedDayCount = (): number => {
-  // get days to end of month
-  const today = new Date();
-  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-  let daysToEndOfMonth = Math.ceil((endOfMonth.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-  // if days to end of month is < 21, get days of next month
-  if (daysToEndOfMonth < 7) {
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    const endOfNextMonth = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0);
-    // console.error("returning days to end of next month:", daysToEndOfMonth);
-    daysToEndOfMonth = Math.ceil((endOfNextMonth.getTime() - nextMonth.getTime()) / (1000 * 60 * 60 * 24) + daysToEndOfMonth);
-  }
-  // console.error("returning days to end of month:", daysToEndOfMonth);
-  // return daysToEndOfMonth;
-  return 2;
-}
-
 const fetchEvents = async (calendars: string[], days: number = 14) => {
-  if (calendars.length === 0) {
-    return [];
-  }
+  if (calendars.length === 0) return [];
 
   const startDate = new Date();
   const endDate = new Date();
@@ -87,6 +67,24 @@ const clearBookedEvents = async (targetCalendar: Calendar.Calendar, events: Cale
     console.error('Error clearing booked events:', error);
   }
 };
+
+const getPlannedDayCount = (): number => {
+  // get days to end of month
+  const today = new Date();
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  let daysToEndOfMonth = Math.ceil((endOfMonth.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  // if days to end of month is < 21, get days of next month
+  if (daysToEndOfMonth < 7) {
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    const endOfNextMonth = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0);
+    // console.error("returning days to end of next month:", daysToEndOfMonth);
+    daysToEndOfMonth = Math.ceil((endOfNextMonth.getTime() - nextMonth.getTime()) / (1000 * 60 * 60 * 24) + daysToEndOfMonth);
+  }
+  // console.error("returning days to end of month:", daysToEndOfMonth);
+  // return daysToEndOfMonth;
+  return 14;
+}
 
 const groupCalendarsBySource = (calendars: Calendar.Calendar[]) => {
   return calendars.reduce((groups, calendar) => {
@@ -214,7 +212,7 @@ export default function Index() {
 
   // update fetched events when calendar selection changes
   useEffect(() => {
-    fetchSelectedEvents();
+    fetchEvents(selectedCalendars, getPlannedDayCount()).then(setEvents);
   }, [selectedCalendars]);
 
   // log booked events to console
