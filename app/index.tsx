@@ -128,11 +128,7 @@ export default function Index() {
   const [expandedSources, setExpandedSources] = useState<Record<string, boolean>>({});
   const [clearingBookedEvents, setClearingBookedEvents] = useState(false);
 
-  const groupedCalendars = groupCalendarsBySource(calendars.filter(({title}) => title !== "Booked"));
-
-  const fetchSelectedEvents = async () => {
-    setEvents(await fetchEvents(selectedCalendars, getPlannedDayCount()));
-  };
+  const groupedCalendars = groupCalendarsBySource(calendars.filter(c => c.id !== booked?.id));
 
   // create a calendar event on booked for each event
   const createBookedEvents = async (events: Calendar.Event[], bookedEvents: Record<string, string>[]) => {
