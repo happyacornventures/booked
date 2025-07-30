@@ -39,6 +39,34 @@ const fetchEvents = async (calendars: string[], days: number = 14) => {
   return allEvents;
 };
 
+const clearEvents = async (events: Calendar.Event[]) => {
+  if (events.length === 0) return;
+
+  try {
+    for (const event of events) {
+      await Calendar.deleteEventAsync(event.id, { futureEvents: true, instanceStartDate: event.startDate });
+      console.error('deleted event:', event.startDate, event.id, event.recurrenceRule);
+    }
+    console.error('cleared events:', events.length);
+  } catch (error) {
+    console.error('Error clearing events:', error);
+  }
+};
+
+const createEventOnCalendar = async (targetCalendarId: string, events: Partial<Calendar.Event>[]) => {
+  if (events.length === 0 || !targetCalendarId) return;
+
+  try {
+    for (const event of events) {
+      await Calendar.createEventAsync(targetCalendarId, event);
+      console.error('added event:', event.startDate);
+    }
+    console.error('added events:', events.length);
+  } catch (error) {
+    console.error('Error adding events:', error);
+  }
+};
+
 // clear booked calendar events
 const clearBookedEvents = async (targetCalendar: Calendar.Calendar, events: Calendar.Event[], bookedEvents: Record<string, string>[]) => {
   try {
