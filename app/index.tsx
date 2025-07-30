@@ -29,18 +29,11 @@ const fetchEvents = async (calendars: string[], days: number = 14) => {
 
   let allEvents: Calendar.Event[] = [];
 
-  for (const calendarId of calendars) {
     try {
-      const calendarEvents = await Calendar.getEventsAsync(
-        [calendarId],
-        startDate,
-        endDate
-      );
-      allEvents = [...allEvents, ...calendarEvents];
+      allEvents = await Calendar.getEventsAsync(calendars, startDate, endDate);
     } catch (error) {
-      console.error(`Error fetching events for calendar ${calendarId}:`, error);
+      console.error(`Error fetching events for calendars:`, error);
     }
-  }
 
   console.log(`${allEvents.length} events fetched for the next ${days} days.`);
   return allEvents;
