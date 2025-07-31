@@ -85,6 +85,8 @@ const getPlannedDayCount = (): number => {
   return 14;
 }
 
+const createBookedEvent = ({id, startDate, endDate, status, allDay, availability, ...evt}: Calendar.Event) => ({startDate, endDate, allDay, availability, status, title: "Booked" });
+
 const groupCalendarsBySource = (calendars: Calendar.Calendar[]) => {
   return calendars.reduce((groups, calendar) => {
     const sourceName = calendar.source.name;
@@ -224,7 +226,7 @@ export default function Index() {
         // fetch events, clear events, create events
         fetchEvents(booked?.id ? [booked.id] : [], getPlannedDayCount())
           .then(clearEvents)
-          .then(() => createEventOnCalendar(booked?.id || '', events.map(({id, startDate, endDate, status, allDay, availability, ...evt}) => ({startDate, endDate, allDay, availability, status, title: "Booked" }))))
+          .then(() => createEventOnCalendar(booked?.id || '', events.map(createBookedEvent)))
           .then(() => setClearingBookedEvents(false));
       }}>
         <Text style={{ textAlign: 'center' }}>Sync Calendar</Text>
