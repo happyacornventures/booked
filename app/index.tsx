@@ -45,7 +45,7 @@ const clearEvents = async (events: Calendar.Event[]) => {
   try {
     for (const event of events) {
       await Calendar.deleteEventAsync(event.id, { futureEvents: true, instanceStartDate: event.startDate });
-      console.error('deleted event:', event.startDate, event.id, event.recurrenceRule);
+      console.error('deleted event:', event.startDate, event.id);
     }
     console.error('cleared events:', events.length);
   } catch (error) {
@@ -100,44 +100,12 @@ export default function Index() {
   const [calendarPermissions, setCalendarPermissions] = useState(false);
   const [calendars, setCalendars] = useState<Calendar.Calendar[]>([]);
   const [booked, setBooked] = useState<Calendar.Calendar | null>(null);
-  const [bookedEvents, setBookedEvents] = useState<Record<string, string>[]>([]);
   const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
   const [events, setEvents] = useState<Calendar.Event[]>([]);
   const [expandedSources, setExpandedSources] = useState<Record<string, boolean>>({});
   const [clearingBookedEvents, setClearingBookedEvents] = useState(false);
 
   const groupedCalendars = groupCalendarsBySource(calendars.filter(c => c.id !== booked?.id));
-
-  // create a calendar event on booked for each event
-  const createBookedEvents = async (events: Calendar.Event[], bookedEvents: Record<string, string>[]) => {
-    if (!booked || events.length === 0) return;
-    const newBookedEvents = [];
-    // console.error('creating booked events:', events.length);
-    for (const originalEvent of events) {
-      // console.error('creating booked event:', originalEvent.startDate);
-      // create a new event if originalEvent is not in bookedEvents
-      if (bookedEvents.some(be => be.originalEvent === originalEvent.id)) {
-        console.error('event already booked:', originalEvent.startDate);
-        continue;
-      }
-
-      try {
-        const bookedEvent = await Calendar.createEventAsync(booked.id, {
-          title: "Busy",
-          startDate: originalEvent.startDate,
-          endDate: originalEvent.endDate,
-          allDay: originalEvent.allDay,
-          availability: originalEvent.availability,
-          status: originalEvent.status,
-        });
-        newBookedEvents.push({bookedEvent, originalEvent: originalEvent.id});
-        console.error('creating booked event:', originalEvent.startDate);
-      } catch (error) {
-        console.error('Error creating booked event:', error);
-      }
-    }
-    setBookedEvents([...bookedEvents, ...newBookedEvents]);
-  }
 
   const toggleCalendarSelection = (calendarId: string) => {
     setSelectedCalendars(prevSelected =>
@@ -185,41 +153,30 @@ export default function Index() {
 
   // create default calendar if it doesn't exist
   useEffect(() => {
-    if (calendars.length > 0) return;
+    if (!calendars.length) return;
     let booked = calendars.find(cal => cal.title === 'Booked');
     if (booked) setBooked(booked);
     else createCalendar({title: 'Booked', name: 'Booked', color: '#FF5733'}).then(getCalendars).then(setCalendars);
     // calendars will be set, retriggering this effect
   }, [calendars]);
 
-  // Save selected calendars to AsyncStorage whenever they change
-  useEffect(() => {
-    const saveSelectedCalendars = async () => {
-      try {
-        await AsyncStorage.setItem('calendars', JSON.stringify(selectedCalendars));
-      } catch (error) {
-        console.error('Error saving selected calendars:', error);
-      }
-    };
+  // // Save selected calendars to AsyncStorage whenever they change
+  // useEffect(() => {
+  //   const saveSelectedCalendars = async () => {
+  //     try {
+  //       await AsyncStorage.setItem('calendars', JSON.stringify(selectedCalendars));
+  //     } catch (error) {
+  //       console.error('Error saving selected calendars:', error);
+  //     }
+  //   };
 
-    saveSelectedCalendars();
-  }, [selectedCalendars]);
+  //   saveSelectedCalendars();
+  // }, [selectedCalendars]);
 
   // update fetched events when calendar selection changes
   useEffect(() => {
     fetchEvents(selectedCalendars, getPlannedDayCount()).then(setEvents);
   }, [selectedCalendars]);
-
-  // log booked events to console
-  useEffect(() => {
-    console.log('bookedEvents:', bookedEvents.length);
-  }, [bookedEvents])
-
-  // // sync booked events when events change
-  // useEffect(() => {
-  //   setClearingBookedEvents(true);
-  //   clearBookedEvents(booked as Calendar.Calendar, events, bookedEvents).then(() => createBookedEvents(events, bookedEvents)).then(() => setClearingBookedEvents(false));
-  // }, [events]);
 
   if (!calendarPermissions) {
     return (
