@@ -67,28 +67,6 @@ const createEventOnCalendar = async (targetCalendarId: string, events: Partial<C
   }
 };
 
-// clear booked calendar events
-const clearBookedEvents = async (targetCalendar: Calendar.Calendar, events: Calendar.Event[], bookedEvents: Record<string, string>[]) => {
-  try {
-    // get all events through DaysToEndOfMonth
-    const daysToEndOfMonth = getPlannedDayCount();
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + daysToEndOfMonth);
-    const events = await Calendar.getEventsAsync([targetCalendar.id], startDate, endDate);
-    console.error('clearing booked events:', events.length);
-    // const events = await Calendar.getEventsAsync([targetCalendar.id], new Date(), new Date(Date.now() + 1000 * 60 * 60 * 24 * 365));
-    for (const event of events) {
-      await Calendar.deleteEventAsync(event.id);
-      console.error('deleted booked event:', event.startDate);
-      // setBookedEvents(prev => prev.filter(be => be.bookedEvent !== event.id));
-    }
-    console.error('cleared booked events:', bookedEvents.length);
-  } catch (error) {
-    console.error('Error clearing booked events:', error);
-  }
-};
-
 const getPlannedDayCount = (): number => {
   // get days to end of month
   const today = new Date();
@@ -286,7 +264,11 @@ export default function Index() {
       ))}
       <TouchableOpacity style={{ backgroundColor: 'cornflowerblue', padding: 10, margin: 10, borderRadius: 10 }} onPress={() => {
         setClearingBookedEvents(true);
-        clearBookedEvents(booked as Calendar.Calendar, events, bookedEvents).then(() => createBookedEvents(events, bookedEvents)).then(() => setClearingBookedEvents(false));
+        // fetch events, clear events, create events
+        fetchEvents(booked?.id ? [booked.id] : [], getPlannedDayCount())
+          .then(clearEvents)
+          .then(() => createEventOnCalendar(booked?.id || '', events.map(({id, startDate, endDate, status, allDay, availability, ...evt}) => ({startDate, endDate, allDay, availability, status, title: "Booked" }))))
+          .then(() => setClearingBookedEvents(false));
       }}>
         <Text style={{ textAlign: 'center' }}>Sync Calendar</Text>
       </TouchableOpacity>
