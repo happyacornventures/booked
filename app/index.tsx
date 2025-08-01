@@ -139,10 +139,9 @@ export default function Index() {
     };
 
     loadSelectedCalendars();
-    // ... rest of your existing useEffect code for fetching calendars
   }, []);
 
-  // get permission to read calendar and get calendars
+  // get permission to read calendars
   useEffect(() => {
     getCalendarPermissions().then(setCalendarPermissions);
   }, []);
@@ -163,17 +162,17 @@ export default function Index() {
   }, [calendars]);
 
   // // Save selected calendars to AsyncStorage whenever they change
-  // useEffect(() => {
-  //   const saveSelectedCalendars = async () => {
-  //     try {
-  //       await AsyncStorage.setItem('calendars', JSON.stringify(selectedCalendars));
-  //     } catch (error) {
-  //       console.error('Error saving selected calendars:', error);
-  //     }
-  //   };
+  useEffect(() => {
+    const saveSelectedCalendars = async () => {
+      try {
+        await AsyncStorage.setItem('calendars', JSON.stringify(selectedCalendars));
+      } catch (error) {
+        console.error('Error saving selected calendars:', error);
+      }
+    };
 
-  //   saveSelectedCalendars();
-  // }, [selectedCalendars]);
+    saveSelectedCalendars();
+  }, [selectedCalendars]);
 
   // update fetched events when calendar selection changes
   useEffect(() => {
