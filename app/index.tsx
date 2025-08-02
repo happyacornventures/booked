@@ -98,6 +98,21 @@ const groupCalendarsBySource = (calendars: Calendar.Calendar[]) => {
   }, {} as Record<string, Calendar.Calendar[]>);
 };
 
+let timeoutId: number | null = null;
+const debounceDelay = 3000;
+
+const debouncedSyncCalendarEvents = (calendarId: string, events: Calendar.Event[], signalSyncRunning: (value: React.SetStateAction<boolean>) => void) => {
+  // debounce syncing to prevent rapid calls
+  signalSyncRunning(true);
+  if (timeoutId) clearTimeout(timeoutId);
+  timeoutId = setTimeout(() => {
+    fetchEvents(calendarId ? [calendarId] : [], getPlannedDayCount())
+      .then(clearEvents)
+      .then(() => createEventOnCalendar(calendarId, events.map(createBookedEvent)))
+      .then(() => signalSyncRunning(false)).then(() => timeoutId = null);
+  }, debounceDelay);
+};
+
 export default function Index() {
   const [calendarPermissions, setCalendarPermissions] = useState(false);
   const [calendars, setCalendars] = useState<Calendar.Calendar[]>([]);
