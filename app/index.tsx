@@ -236,12 +236,7 @@ export default function Index() {
         </View>
       ))}
       <TouchableOpacity style={{ backgroundColor: 'cornflowerblue', padding: 10, margin: 10, borderRadius: 10 }} onPress={() => {
-        setClearingBookedEvents(true);
-        // fetch events, clear events, create events
-        fetchEvents(booked?.id ? [booked.id] : [], getPlannedDayCount())
-          .then(clearEvents)
-          .then(() => createEventOnCalendar(booked?.id || '', events.map(createBookedEvent)))
-          .then(() => setClearingBookedEvents(false));
+        if(booked?.id) debouncedSyncCalendarEvents(booked.id, events, setClearingBookedEvents);
       }}>
         <Text style={{ textAlign: 'center' }}>Sync Calendar</Text>
       </TouchableOpacity>
