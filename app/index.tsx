@@ -32,7 +32,7 @@ const fetchEvents = async (calendars: string[], days: number = 14) => {
     try {
       allEvents = await Calendar.getEventsAsync(calendars, startDate, endDate);
     } catch (error) {
-      console.error(`Error fetching events for calendars:`, error);
+      console.log(`Error fetching events for calendars:`, error);
     }
 
   console.log(`${allEvents.length} events fetched for the next ${days} days.`);
@@ -45,11 +45,11 @@ const clearEvents = async (events: Calendar.Event[]) => {
   try {
     for (const event of events) {
       await Calendar.deleteEventAsync(event.id, { futureEvents: true, instanceStartDate: event.startDate });
-      console.error('deleted event:', event.startDate, event.id);
+      console.log('deleted event:', event.startDate, event.id);
     }
-    console.error('cleared events:', events.length);
+    console.log('cleared events:', events.length);
   } catch (error) {
-    console.error('Error clearing events:', error);
+    console.log('Error clearing events:', error);
   }
 };
 
@@ -59,11 +59,11 @@ const createEventOnCalendar = async (targetCalendarId: string, events: Partial<C
   try {
     for (const event of events) {
       await Calendar.createEventAsync(targetCalendarId, event);
-      console.error('added event:', event.startDate);
+      console.log('added event:', event.startDate);
     }
-    console.error('added events:', events.length);
+    console.log('added events:', events.length);
   } catch (error) {
-    console.error('Error adding events:', error);
+    console.log('Error adding events:', error);
   }
 };
 
