@@ -74,15 +74,15 @@ const getPlannedDayCount = (): number => {
   let daysToEndOfMonth = Math.ceil((endOfMonth.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
   // if days to end of month is < 21, get days of next month
-  if (daysToEndOfMonth < 7) {
+  if (daysToEndOfMonth < 21) {
     const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
     const endOfNextMonth = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0);
     // console.error("returning days to end of next month:", daysToEndOfMonth);
     daysToEndOfMonth = Math.ceil((endOfNextMonth.getTime() - nextMonth.getTime()) / (1000 * 60 * 60 * 24) + daysToEndOfMonth);
   }
   // console.error("returning days to end of month:", daysToEndOfMonth);
-  // return daysToEndOfMonth;
-  return 14;
+  return daysToEndOfMonth;
+  // return 90;
 }
 
 const createBookedEvent = ({id, startDate, endDate, status, allDay, availability, ...evt}: Calendar.Event) => ({startDate, endDate, allDay, availability, status, title: "Booked" });
