@@ -194,6 +194,12 @@ export default function Index() {
     fetchEvents(selectedCalendars, getPlannedDayCount()).then(setEvents);
   }, [selectedCalendars]);
 
+  // sync booked events with selected calendars
+  useEffect(() => {
+    if (!booked) return;
+    debouncedSyncCalendarEvents(booked?.id, events, setClearingBookedEvents);
+  }, [booked, events]);
+
   if (!calendarPermissions) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
