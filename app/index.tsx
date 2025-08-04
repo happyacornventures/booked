@@ -247,7 +247,7 @@ export default function Index() {
         <Text style={{ textAlign: 'center' }}>Sync Calendar</Text>
       </TouchableOpacity>
       {clearingBookedEvents && (
-        <Text style={{ color: 'red', textAlign: 'center', margin: 10 }}>Clearing booked events...</Text>
+        <Text style={{ color: 'red', textAlign: 'center', margin: 10 }}>Syncing booked events...</Text>
       )}
     </ScrollView>
   );
