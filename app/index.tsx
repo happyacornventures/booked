@@ -178,15 +178,8 @@ export default function Index() {
 
   // // Save selected calendars to AsyncStorage whenever they change
   useEffect(() => {
-    const saveSelectedCalendars = async () => {
-      try {
-        await AsyncStorage.setItem('calendars', JSON.stringify(selectedCalendars));
-      } catch (error) {
-        console.error('Error saving selected calendars:', error);
-      }
-    };
-
-    saveSelectedCalendars();
+    AsyncStorage.setItem('calendars', JSON.stringify(selectedCalendars))
+      .catch(error => console.error('Error saving selected calendars:', error));
   }, [selectedCalendars]);
 
   // update fetched events when calendar selection changes
